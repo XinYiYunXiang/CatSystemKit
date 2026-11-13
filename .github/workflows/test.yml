@@ -1,0 +1,19 @@
+name: test
+on:
+  push:
+    branches: [ci]
+  workflow_dispatch:
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        ref: [main, motion-inherit-mask]
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.ref }}
+      - run: swift --version
+      - run: swift build
+      - run: swift test
