@@ -16,4 +16,4 @@ jobs:
           ref: ${{ matrix.ref }}
       - run: swift --version
       - run: swift build
-      - run: swift test
+      - run: swift test -Xswiftc -Xfrontend -Xswiftc -solver-expression-time-threshold=600
