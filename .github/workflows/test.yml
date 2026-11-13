@@ -5,15 +5,21 @@ on:
   workflow_dispatch:
 jobs:
   test:
-    strategy:
-      fail-fast: false
-      matrix:
-        ref: [main, motion-inherit-mask]
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ matrix.ref }}
+          ref: motion-inherit-mask
       - run: swift --version
+      - name: Split an expression the type checker gives up on
+        run: |
+          python3 - <<'PY'
+          p = 'Tests/CatSystemKitTests/KCScriptTests.swift'
+          s = open(p).read()
+          a = 'return Array("CSTL".utf8) + [0, 0, 0, 0] + [1] + string("en") + [UInt8(messages.count)]\n        + messages.flatMap { string($0.0) + string($0.1) }'
+          b = 'var out: [UInt8] = Array("CSTL".utf8)\n    out += [0, 0, 0, 0, 1]\n    out += string("en")\n    out.append(UInt8(messages.count))\n    for m in messages { out += string(m.0); out += string(m.1) }\n    return out'
+          assert s.count(a) == 1
+          open(p, 'w').write(s.replace(a, b))
+          PY
       - run: swift build
-      - run: swift test -Xswiftc -Xfrontend -Xswiftc -solver-expression-time-threshold=600
+      - run: swift test
